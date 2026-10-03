@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Frank's Hive Builder</title>
+  <meta name="description" content="Langstroth beehive box builder: dimensioned diagrams, cut lists, board layouts, step-by-step shop guides, build tracker, costs and north Mississippi care tips.">
+  <meta name="theme-color" content="#16130d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Hive Builder">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="header">
+    <img class="logo" src="icons/icon.svg" alt="" width="40" height="40">
+    <div class="grow">
+      <h1>Frank's Hive Builder</h1>
+      <p class="sub">Langstroth shop guide · <span id="ver">V 1.0</span></p>
+    </div>
+    <button type="button" class="icon-btn u" id="uBtn" aria-label="Toggle units">in</button>
+    <button type="button" class="icon-btn" id="btnMenu" aria-label="Menu">☰</button>
+  </header>
+  <div id="menu" class="menu hidden" role="menu">
+    <button type="button" data-action="check-update">Check for update</button>
+    <button type="button" data-action="units">Units</button>
+    <button type="button" data-action="specs">Specs &amp; corrections</button>
+    <button type="button" data-action="region">North MS care</button>
+    <button type="button" data-action="export">Export builds (JSON)</button>
+    <button type="button" data-action="about">About · V 1.0</button>
+  </div>
+  <main id="main" class="main"></main>
+  <nav class="tabs">
+    <a href="#parts" data-t="parts"><i>▦</i>Parts</a>
+    <a href="#cuts" data-t="cuts"><i>✂</i>Cuts</a>
+    <a href="#steps" data-t="steps"><i>☑</i>Steps</a>
+    <a href="#builds" data-t="builds"><i>⚒</i>Builds</a>
+    <a href="#cost" data-t="cost"><i>$</i>Cost</a>
+    <a href="#region" data-t="region"><i>⛅</i>MS</a>
+  </nav>
+  <div id="toast" class="toast"></div>
+  <script>window.HB_VERSION = 'V 1.0';</script>
+  <script src="js/dims.js"></script>
+  <script src="js/diagrams.js"></script>
+  <script src="js/cutlist.js"></script>
+  <script src="js/guide.js"></script>
+  <script src="js/info.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/pages.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
