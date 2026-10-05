@@ -1,6 +1,6 @@
 /* Frank's Hive Builder service worker — full offline shell */
-const CACHE = 'hive-v1.0';
-const SHELL = ['./', './index.html', './css/app.css', './js/dims.js', './js/diagrams.js', './js/cutlist.js', './js/guide.js', './js/info.js', './js/db.js', './js/ui.js', './js/pages.js', './js/app.js', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
+const CACHE = 'hive-v1.1';
+const SHELL = ['./', './index.html', './css/app.css', './js/dims.js', './js/diagrams.js', './js/cutlist.js', './js/guide.js', './js/info.js', './js/fence.js', './js/fence-guide.js', './js/db.js', './js/ui.js', './js/pages.js', './js/app.js', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
     const c = await caches.open(CACHE);

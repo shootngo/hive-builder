@@ -12,7 +12,9 @@ Phone PWA for building Langstroth beehive boxes in the shop (plain HTML/CSS/JS, 
 - **Cost**: editable estimate prices and a shopping-list export.
 - Units toggle (1/16" fractions ↔ mm), dark shop theme, big tap targets.
 - **MS** tab: north Mississippi care tips, each linked to MSU Extension / MDAC / USDA sources.
-- ☰ menu: Check for update, units, Specs & corrections, About (V 1.0).
+- **Materials mode** (V 1.1): *Solid boards* (the original behavior, default) or *Cedar fence boards* (tongue-and-groove or dog-eared pickets). Fence mode assumes actual 5/8" × 5 1/2" × 6' (or 8') stock, edge-joins 2 boards per wall, holds the inside at standard size so frames fit (outside shrinks to 19 5/8" × 16" for 10-frame), and recalculates the cut list, joined-board counts, board layout, costs and shopping list. It shows structural warnings inline, marks the parts that stay solid (bottom rails, covers, reducer, cleats), and adds edge-joining build steps (rip, spline/dowel, Titebond III glue-up, clamp, cleats screwed across the joint).
+- Build locations are fixed: Southaven, MS and Olive Branch, MS.
+- ☰ menu: Check for update, units, Specs & corrections, About (V 1.1).
 
 ## Release
 Bump `CACHE` in `sw.js` and `HB_VERSION` in `index.html` together. Icons are stored as `.hex` and decoded by the Pages workflow.
