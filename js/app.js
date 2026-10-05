@@ -59,16 +59,17 @@
   }
 
   function pageCost(el) {
-    var pr = HB.loadPrices(), c = HB.cfg, r = HB.optimize(c), items = HB.materials(c, r, pr), tot = items.reduce(function (s, i) { return s + i.cost; }, 0);
-    el.innerHTML = '<div class="pad"><h2>Materials &amp; cost</h2><p class="meta">For the job in Cut List: ' + c.hives + ' hives, ' + c.deep + 'D + ' + c.medium + 'M + ' + c.shallow + 'S, ' + HB.SPECIES[c.species] + ' ' + HB.frac(c.t) + '. <b>Prices are rough estimates</b>; edit them to what your lumberyard or sawmill charges.</p>' +
+    var pr = HB.loadPrices(), c = HB.cfg, r = HB.optimize(c), items = HB.materials(c, r, pr), tot = items.reduce(function (s, i) { return s + i.cost; }, 0), fz = c.mat === 'fence';
+    el.innerHTML = '<div class="pad"><h2>Materials &amp; cost</h2>' + HB.matSeg() + '<p class="meta">For the job in Cut List: ' + c.hives + ' hives, ' + c.deep + 'D + ' + c.medium + 'M + ' + c.shallow + 'S, ' + (fz ? 'walls from ' + HB.fenceStock(c).name + ' (5/8"), solid parts ' : '') + HB.SPECIES[c.species] + ' ' + HB.frac(c.t) + '. <b>Prices are rough estimates</b>; edit them to what your lumberyard or sawmill charges.' + (fz ? ' Sourcing: ' + HB.LOCATIONS.join(' / ') + ' home centers and fence suppliers.' : '') + '</p>' +
       '<table class="tbl cost"><tr><th>Item</th><th>Qty</th><th>$</th></tr>' + items.map(function (i) { return '<tr><td>' + E(i.name) + (i.note ? '<div class="op">' + E(i.note) + '</div>' : '') + '</td><td class="q">' + i.qty + ' ' + E(i.unit) + '</td><td class="d">' + i.cost.toFixed(2) + '</td></tr>'; }).join('') +
       '<tr class="tot"><td>Total (est.)</td><td></td><td class="d">$' + tot.toFixed(2) + '</td></tr><tr><td>Per hive</td><td></td><td class="d">$' + (tot / c.hives).toFixed(2) + '</td></tr></table>' +
       '<div class="row2"><button type="button" class="btn big" id="shop">Export shopping list</button><button type="button" class="btn big alt" id="share">Share / copy</button></div>' +
-      '<h3>Edit prices (estimates)</h3><div class="prices">' + Object.keys(HB.PRICE_LABELS).map(function (k) { return '<label class="fl">' + E(HB.PRICE_LABELS[k]) + ' <input type="number" inputmode="decimal" step="0.05" data-p="' + k + '" value="' + pr[k] + '"></label>'; }).join('') +
+      '<h3>Edit prices (estimates)</h3><div class="prices">' + Object.keys(HB.PRICE_LABELS).filter(function (k) { return fz || HB.FENCE_PRICE_KEYS.indexOf(k) < 0; }).map(function (k) { return '<label class="fl">' + E(HB.PRICE_LABELS[k]) + ' <input type="number" inputmode="decimal" step="0.05" data-p="' + k + '" value="' + pr[k] + '"></label>'; }).join('') +
       '</div><button type="button" class="btn alt" id="reset">Reset to default estimates</button></div>';
     el.querySelectorAll('[data-p]').forEach(function (i) { i.addEventListener('change', function () { pr[i.getAttribute('data-p')] = +i.value || 0; localStorage.setItem('hb_prices', JSON.stringify(pr)); var y = scrollY; pageCost(el); scrollTo(0, y); }); });
     el.querySelector('#reset').addEventListener('click', function () { localStorage.removeItem('hb_prices'); pageCost(el); });
-    function txt() { return ["Frank's Hive Builder — shopping list", c.hives + ' hives (' + c.frames + '-frame), ' + HB.SPECIES[c.species] + ' ' + HB.frac(c.t), ''].concat(items.map(function (i) { return '☐ ' + i.qty + ' ' + i.unit + ' — ' + i.name + '  (~$' + i.cost.toFixed(2) + ')'; })).concat(['', 'Estimated total: $' + tot.toFixed(2) + ' (prices are estimates)']).join('\n'); }
+    HB.bindSeg(el, function () { pageCost(el); });
+    function txt() { return ["Frank's Hive Builder — shopping list", c.hives + ' hives (' + c.frames + '-frame), ' + (fz ? HB.fenceStock(c).name + ' walls + solid ' : '') + HB.SPECIES[c.species] + ' ' + HB.frac(c.t), ''].concat(items.map(function (i) { return '☐ ' + i.qty + ' ' + i.unit + ' — ' + i.name + '  (~$' + i.cost.toFixed(2) + ')'; })).concat(['', 'Estimated total: $' + tot.toFixed(2) + ' (prices are estimates)']).join('\n'); }
     el.querySelector('#shop').addEventListener('click', function () { HB.download('hive-shopping-list.txt', txt()); });
     el.querySelector('#share').addEventListener('click', function () {
       var t = txt();
