@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Frank's Hive Builder</title>
-  <meta name="description" content="Langstroth beehive box builder: dimensioned diagrams, cut lists, board layouts, step-by-step shop guides, build tracker, costs and north Mississippi care tips.">
+  <meta name="description" content="Langstroth beehive box builder: dimensioned diagrams, cut lists (solid or cedar fence boards), board layouts, step-by-step shop guides, build tracker, costs and north Mississippi care tips.">
   <meta name="theme-color" content="#16130d">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -20,7 +20,7 @@
     <img class="logo" src="icons/icon.svg" alt="" width="40" height="40">
     <div class="grow">
       <h1>Frank's Hive Builder</h1>
-      <p class="sub">Langstroth shop guide · <span id="ver">V 1.0</span></p>
+      <p class="sub">Langstroth shop guide · <span id="ver">V 1.1</span></p>
     </div>
     <button type="button" class="icon-btn u" id="uBtn" aria-label="Toggle units">in</button>
     <button type="button" class="icon-btn" id="btnMenu" aria-label="Menu">☰</button>
@@ -31,7 +31,7 @@
     <button type="button" data-action="specs">Specs &amp; corrections</button>
     <button type="button" data-action="region">North MS care</button>
     <button type="button" data-action="export">Export builds (JSON)</button>
-    <button type="button" data-action="about">About · V 1.0</button>
+    <button type="button" data-action="about">About · V 1.1</button>
   </div>
   <main id="main" class="main"></main>
   <nav class="tabs">
@@ -43,12 +43,14 @@
     <a href="#region" data-t="region"><i>⛅</i>MS</a>
   </nav>
   <div id="toast" class="toast"></div>
-  <script>window.HB_VERSION = 'V 1.0';</script>
+  <script>window.HB_VERSION = 'V 1.1';</script>
   <script src="js/dims.js"></script>
   <script src="js/diagrams.js"></script>
   <script src="js/cutlist.js"></script>
   <script src="js/guide.js"></script>
   <script src="js/info.js"></script>
+  <script src="js/fence.js"></script>
+  <script src="js/fence-guide.js"></script>
   <script src="js/db.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/pages.js"></script>

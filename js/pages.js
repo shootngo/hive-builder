@@ -3,16 +3,21 @@
   'use strict';
   var HB = window.HB, E = HB.esc;
   HB.cfg = HB.loadCfg();
-  function opts() { var c = HB.cfg; return { frames: c.frames, t: c.t, joint: c.joint, handhold: c.handhold, standH: c.standH }; }
+  function opts() { var c = HB.cfg; return { frames: c.frames, t: c.t, joint: c.joint, handhold: c.handhold, standH: c.standH, mat: c.mat, fence: c.fence, fenceLen: c.fenceLen }; }
   HB.opts = opts;
   function seg(name, val, choices) {
     return '<div class="seg" data-seg="' + name + '">' + choices.map(function (ch) { return '<button type="button" data-v="' + ch[0] + '" class="' + (String(val) === String(ch[0]) ? 'on' : '') + '">' + ch[1] + '</button>'; }).join('') + '</div>';
   }
   HB.seg = seg;
+  function matSeg() {
+    var c = HB.cfg, fz = c.mat === 'fence';
+    return seg('mat', c.mat, [['solid', 'Solid boards'], ['fence', 'Cedar fence boards']]) + (fz ? seg('fence', c.fence, [['tg', 'Tongue & groove'], ['dog', 'Dog-eared pickets']]) : '');
+  }
+  HB.matSeg = matSeg;
   function optBar(full) {
-    var c = HB.cfg;
-    return '<div class="optbar">' + seg('frames', c.frames, [[10, '10-frame'], [8, '8-frame']]) + seg('t', c.t, [[0.75, '3/4" stock'], [0.875, '7/8" stock']]) +
-      (full ? seg('joint', c.joint, [['box', 'Box joint'], ['rabbet', 'Rabbet'], ['butt', 'Butt']]) + seg('handhold', c.handhold, [['cleat', 'Cleat handhold'], ['routed', 'Routed']]) : '') + '</div>';
+    var c = HB.cfg, fz = c.mat === 'fence';
+    return '<div class="optbar">' + matSeg() + seg('frames', c.frames, [[10, '10-frame'], [8, '8-frame']]) + seg('t', c.t, fz ? [[0.75, 'Solid parts 3/4"'], [0.875, 'Solid parts 7/8"']] : [[0.75, '3/4" stock'], [0.875, '7/8" stock']]) +
+      (full ? seg('joint', c.joint, [['box', 'Box joint'], ['rabbet', 'Rabbet'], ['butt', 'Butt']]) + (fz ? '<p class="meta fz">Fence mode: walls are 5/8" fence boards, edge-joined; handholds are solid cleats (no routing).</p>' : seg('handhold', c.handhold, [['cleat', 'Cleat handhold'], ['routed', 'Routed']])) : '') + '</div>';
   }
   HB.bindSeg = function (root, after) {
     root.querySelectorAll('[data-seg]').forEach(function (s) {
@@ -42,15 +47,17 @@
           return '<tr><td>' + (i + 1) + '</td><td>' + HB.f(u.y0) + ' – ' + HB.f(u.y1) + '</td><td>' + e + (u.owner === 'top' ? ' (rabbeted)' : '') + '</td><td>' + l + '</td></tr>';
         }).join('') + '</table>';
     }
+    if (HB.isFence(o)) h = h.replace('</h2>', '</h2>' + (isBox ? '<p class="fzb">Fence boards: ' + HB.parts(comp, o)[0].join + ' boards edge-joined per wall · 5/8" walls · inside stays standard · warnings on each part below</p>' : (HB.solidWarn(comp) ? HB.fwHtml([HB.solidWarn(comp)]) : ''))) + (isBox ? HB.fenceCard(o, false) : '');
     h += '<h3>Parts for one</h3>' + partsTable(parts) +
       '<div class="row2"><a class="btn big" href="#steps/' + (HB.GUIDE_LIST.indexOf(comp) >= 0 ? comp : 'stack') + '/0">Build steps ›</a><a class="btn big alt" href="#cuts">Cut list ›</a></div></div>';
     el.innerHTML = h; HB.initZoom(el);
     HB.bindSeg(el, function () { HB.pageParts(el, comp); });
   };
   function dimTxt(p) { return p.t < 0.05 ? HB.f(p.w) + ' × ' + HB.f(p.L) + ' (sheet)' : HB.txwxl(p); }
-  function partsTable(rows) {
+  function partsTable(rows, compact) {
     return '<table class="tbl cut"><tr><th>Part · T × W × L · operation</th><th>Qty</th></tr>' + rows.map(function (p) {
-      return '<tr><td><b class="code">' + E(p.code) + '</b> ' + E(p.name) + '<div class="dims">' + dimTxt(p) + '</div>' + (p.op ? '<div class="op">' + E(p.op) + '</div>' : '') + '</td><td class="q">' + p.qty + '</td></tr>';
+      return '<tr><td><b class="code">' + E(p.code) + '</b> ' + E(p.name) + (p.solid ? ' <span class="tag sol">SOLID STOCK</span>' : '') + (p.fence ? ' <span class="tag jn">' + p.join + ' boards joined</span>' : '') + '<div class="dims">' + dimTxt(p) + '</div>' + (p.op ? '<div class="op">' + E(p.op) + '</div>' : '') +
+        (p.fence ? '<div class="op jop">' + E(p.how) + '. Strips: ' + p.join + ' × ' + (p.lay.kind === 'dog' ? HB.f(p.stripW) : HB.f(p.stripW) + ' T&G') + ' × ' + HB.f(p.stripL) + ' (' + p.qty * p.join + ' strips)</div>' : '') + (p.warn ? HB.fwHtml(p.warn, compact) : '') + '</td><td class="q">' + p.qty + '</td></tr>';
     }).join('') + '</table>';
   }
 
@@ -63,8 +70,8 @@
       seg('frames', c.frames, [[10, '10-frame'], [8, '8-frame']]) + seg('bottom', c.bottom, [['bottom-screened', 'Screened bottom'], ['bottom-solid', 'Solid bottom']]) +
       '<div class="cks">' + chk('inner', c.inner, 'Inner cover') + chk('outer', c.outer, 'Telescoping cover') + chk('reducer', c.reducer, 'Entrance reducer') + chk('stand', c.stand, 'Stand') + chk('makeFrames', c.makeFrames, 'Make frames too') + '</div>' +
       '<label class="fl">Stand height (in) ' + num('standH', c.standH, 18, 24) + '</label>' +
-      '<h3>Lumber</h3>' + seg('species', c.species, [['cypress', 'Cypress'], ['cedar', 'Cedar'], ['pine', 'Pine']]) + seg('t', c.t, [[0.75, '3/4"'], [0.875, '7/8"']]) +
-      seg('joint', c.joint, [['box', 'Box joint'], ['rabbet', 'Rabbet'], ['butt', 'Butt']]) + seg('handhold', c.handhold, [['cleat', 'Cleats'], ['routed', 'Routed']]) +
+      '<h3>Lumber</h3>' + matSeg() + (c.mat === 'fence' ? seg('fenceLen', c.fenceLen, [[6, "6 ft fence boards"], [8, "8 ft fence boards"]]) + HB.fenceCard(opts(), false) + '<p class="meta fz">Solid lumber below is only for the parts that stay solid (cleats, bottom rails, cover rims, reducer).</p>' : '') + seg('species', c.species, [['cypress', 'Cypress'], ['cedar', 'Cedar'], ['pine', 'Pine']]) + seg('t', c.t, [[0.75, '3/4"'], [0.875, '7/8"']]) +
+      seg('joint', c.joint, [['box', 'Box joint'], ['rabbet', 'Rabbet'], ['butt', 'Butt']]) + (c.mat === 'fence' ? '' : seg('handhold', c.handhold, [['cleat', 'Cleats'], ['routed', 'Routed']])) +
       '<div class="cks">' + Object.keys(HB.BOARDS).map(function (k) { return '<label class="ck"><input type="checkbox" data-w="' + k + '"' + (c.widths.indexOf(k) >= 0 ? ' checked' : '') + '><span>' + k + ' (' + HB.frac(HB.BOARDS[k]) + ')</span></label>'; }).join('') + '</div>' +
       '<label class="fl">Rough/custom width (in, 0 = none) ' + num('custom', c.custom, 0, 24, 0.0625) + '</label>' +
       '<div class="cks">' + [6, 8, 10, 12, 16].map(function (l) { return '<label class="ck"><input type="checkbox" data-l="' + l + '"' + (c.lengths.indexOf(l) >= 0 ? ' checked' : '') + '><span>' + l + ' ft</span></label>'; }).join('') + '</div>' +
@@ -88,14 +95,21 @@
   function renderCuts(out) {
     HB._cutsShown = true;
     var c = HB.cfg, r = HB.optimize(c), h = '';
-    var bg = r.groups.filter(function (g) { return g.mat === 'board'; })[0];
-    h += '<div class="sum">' +
+    var bg = r.groups.filter(function (g) { return g.mat === 'board'; })[0], fz = r.fence;
+    if (fz) h += '<div class="sum fsum">' +
+      '<div class="k"><b>' + fz.pack.boards.length + '</b><span>fence boards</span></div>' +
+      '<div class="k"><b>' + fz.panels + '</b><span>joined walls</span></div>' +
+      '<div class="k"><b>' + Math.round(fz.waste * 100) + '%</b><span>fence waste</span></div>' +
+      '<div class="k"><b>' + (r.bf ? r.bf.toFixed(1) : '0') + '</b><span>solid bd ft</span></div></div>' +
+      '<p class="fzb">' + fz.strips + ' strips edge-joined into ' + fz.panels + ' walls (' + fz.joints + ' full-length glue joints). Cleats, bottom rails, cover rims and reducer stay solid.</p>' +
+      '<details class="card" open><summary>Fence-mode warnings</summary><div class="cb">' + HB.fwHtml(['dogTop', 'rabbet', 'hand', 'corner', 'knots', 'joint']) + '</div></details>';
+    else h += '<div class="sum">' +
       '<div class="k"><b>' + (r.bf ? r.bf.toFixed(1) : '0') + '</b><span>board feet (1x)</span></div>' +
       '<div class="k"><b>' + (r.waste !== undefined ? Math.round(r.waste * 100) : 0) + '%</b><span>waste</span></div>' +
       '<div class="k"><b>' + (bg ? bg.pack.boards.length : 0) + '</b><span>boards</span></div>' +
       '<div class="k"><b>' + (r.bf ? (r.bf / c.hives).toFixed(1) : 0) + '</b><span>bd ft / hive</span></div></div>';
     h += '<h3>Components (' + c.hives + ' hives)</h3><p>' + Object.keys(r.cl.comps).map(function (k) { return r.cl.comps[k] + '× ' + E(HB.NAMES[k]); }).join(' · ') + '</p>';
-    h += '<h3>Cut list</h3>' + partsTable(r.cl.rows);
+    h += '<h3>Cut list</h3>' + (fz ? '<p class="meta">Fence-mode warnings are flagged on each row; open the warnings card above for the details, or see each part\'s page and build steps.</p>' : '') + partsTable(r.cl.rows, !!fz);
     if (r.frameBf) h += '<p class="meta">Frame parts need ≈' + r.frameBf.toFixed(1) + ' bd ft of clear pine resawn to 3/8" (not in the board layout).</p>';
     r.groups.forEach(function (g) {
       h += '<h3>' + E(g.title) + '</h3><p class="buy">Buy: ' + Object.keys(g.counts).map(function (k) { return '<b>' + g.counts[k] + '×</b> ' + E(k); }).join(', ') + '</p>';
@@ -110,9 +124,11 @@
   }
   function cutText(r) {
     var c = HB.cfg, L = ["Frank's Hive Builder — cut list (" + window.HB_VERSION + ')', c.hives + ' hives · ' + c.frames + '-frame · ' + HB.SPECIES[c.species] + ' ' + HB.frac(c.t) + ' · ' + c.joint + ' joints', ''];
-    r.cl.rows.forEach(function (p) { L.push(p.qty + ' × ' + p.name + ' — ' + dimTxt(p) + (p.op ? ' — ' + p.op : '')); });
+    if (r.fence) L.splice(2, 0, 'Walls: ' + HB.fenceStock(c).name + ' (5/8"), edge-joined; inside held standard. Build locations: ' + HB.LOCATIONS.join(' / '));
+    r.cl.rows.forEach(function (p) { L.push(p.qty + ' × ' + p.name + ' — ' + dimTxt(p) + (p.op ? ' — ' + p.op : '') + (p.fence ? ' — ' + p.how : '') + (p.solid ? ' — SOLID STOCK' : '')); });
     L.push(''); r.groups.forEach(function (g) { L.push(g.title + ': ' + Object.keys(g.counts).map(function (k) { return g.counts[k] + '× ' + k; }).join(', ')); });
-    if (r.bf) L.push('Total ' + r.bf.toFixed(1) + ' bd ft, waste ' + Math.round(r.waste * 100) + '%');
+    if (r.fence) L.push(r.fence.pack.boards.length + ' fence boards → ' + r.fence.panels + ' joined walls');
+    if (r.bf) L.push('Total ' + r.bf.toFixed(1) + ' bd ft' + (r.fence ? ' solid' : '') + ', waste ' + Math.round(r.waste * 100) + '%');
     return L.join('\n');
   }
 
@@ -123,7 +139,7 @@
     HB.db.all().then(function (builds) {
       var pick = '<label class="fl">Log progress to <select id="bsel"><option value="shop">Shop (no build)</option>' + builds.map(function (b) { return '<option value="' + b.id + '"' + (b.id === bid ? ' selected' : '') + '>' + E(b.name) + '</option>'; }).join('') + '</select></label>';
       if (!comp) {
-        el.innerHTML = '<div class="pad"><h2>Build guides</h2>' + pick + optBar(true) + '<div class="list">' + HB.GUIDE_LIST.map(function (k) {
+        el.innerHTML = '<div class="pad"><h2>Build guides</h2>' + pick + optBar(true) + '<div class="list">' + HB.GUIDE_LIST.filter(function (k) { return k !== 'edgejoin' || HB.cfg.mat === 'fence'; }).map(function (k) {
           var n = HB.steps(k, opts()).length, d = HB.gp.get(bid, k).length;
           return '<a class="li" href="#steps/' + k + '/0"><span>' + E(HB.NAMES[k]) + '</span><span class="pill' + (d >= n ? ' ok' : '') + '">' + d + '/' + n + '</span></a>';
         }).join('') + '</div></div>';
@@ -134,7 +150,7 @@
         el.innerHTML = '<div class="pad step"><a class="back" href="#steps">‹ All guides</a>' + pick +
           '<div class="sh"><span>' + E(HB.NAMES[comp]) + '</span><span>Step ' + (i + 1) + ' of ' + steps.length + '</span></div>' +
           '<div class="prog"><i style="width:' + Math.round(done.length / steps.length * 100) + '%"></i></div>' +
-          '<h2>' + E(st.t) + '</h2>' + (fig ? HB.zoomBox(fig) : '') + '<p class="body">' + E(st.b) + '</p>' +
+          '<h2>' + E(st.t) + '</h2>' + (fig ? HB.zoomBox(fig) : '') + '<p class="body">' + E(st.b) + '</p>' + (st.fw ? HB.fwHtml(st.fw) : '') +
           (st.s && st.s.length ? '<div class="set"><h4>Tool settings</h4><ul>' + st.s.map(function (x) { return '<li>' + E(x) + '</li>'; }).join('') + '</ul></div>' : '') +
           (st.w ? '<div class="safety">⚠ ' + E(st.w) + '</div>' : '') +
           '<button type="button" class="done' + (isD ? ' on' : '') + '" id="done"><span class="box">' + (isD ? '✓' : '') + '</span>' + (isD ? 'Done' : 'Mark done') + '</button>' +

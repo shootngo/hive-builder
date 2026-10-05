@@ -74,7 +74,7 @@
       c.dh(0, g.W, -fs * 1.6, F(joint === 'butt' ? g.W - 2 * t : g.W), 0);
       c.dv(0, H, -fs * 1.4, F(H), 0);
       c.dv(0, R.down, g.W + fs * 1.4, F(R.down) + ' rabbet', g.W);
-      handhold(c, g.W, H, o, fs);
+      handhold(c, g.W, H, o, fs); joints(c, g.W, o, fs);
     }, { fs: Math.max(g.W, H * 1.15) / 15, pr: Math.max(g.W, H * 1.15) / 15 * 6 }));
     // 3 long side
     var ll = joint === 'rabbet' ? g.L - 2 * (t - Math.round(t / 2 * 16) / 16) : g.L;
@@ -83,6 +83,7 @@
       c.dh(0, ll, -fs * 1.6, F(ll), 0);
       c.dv(0, H, -fs * 1.4, F(H), 0);
       if (o.handhold === 'routed') handhold(c, ll, H, o, fs);
+      else if (o.joints) { handhold(c, ll, H, o, fs); joints(c, ll, o, fs); }
     }, { fs: Math.max(g.W, H * 1.15) / 15 }));
     // 4 rabbet detail
     V.push(view('Frame-rest rabbet — section through end board (enlarged)', t + 1.6, 2.2, function (c, fs) {
@@ -116,8 +117,10 @@
   }
   function handhold(c, w, H, o, fs) {
     if (o.handhold === 'routed') { var hw = 4.5, hy = Math.min(2, H * .25); c.rect(w / 2 - hw / 2, hy, hw, 1, '#151515', C.edge); c.text(w / 2, hy + 1 + fs * 1.1, 'handhold ≈4 1/2"×1" (approx.)', { k: .6, c: 'nt' }); }
-    else { var cy = Math.min(2.5, H * .3); c.rect(1, cy, w - 2, 1.5, 'none', C.hid, true); c.text(w / 2, cy + .95, 'cleat 1 1/2" (on face)', { k: .6, c: 'nt' }); }
+    else { var cy = o.cleatY != null ? o.cleatY : Math.min(2.5, H * .3); c.rect(1, cy, w - 2, 1.5, 'none', C.hid, true); c.text(w / 2, cy + (o.joints ? .6 : .95), o.joints ? 'solid cleat over joint' : 'cleat 1 1/2" (on face)', { k: .6, c: 'nt' }); }
   }
+  /* fence mode: dashed glue-joint lines on edge-joined walls */
+  function joints(c, w, o, fs) { (o.joints || []).forEach(function (y) { c.line(0, y, w, y, '#ff5b8a', c.sw * 1.6, true); c.text(w / 2, y + fs * .62, 'glue joint', { k: .55, c: 'nt' }); }); }
 
   function bottomViews(comp, o) {
     var g = HB.geom(o), t = g.t, B = HB.STD.bottom, V = [], iw = g.W - 2 * t, scr = comp === 'bottom-screened';
